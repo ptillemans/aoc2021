@@ -2,17 +2,18 @@ package aoc2020
 
 class Day1 {
     
+    var input: String
     
-    fun getInput(): String {
+    init {
         val filename = "/aoc2020/day1/input.txt"
-        return Day1::class.java.getResource(filename).readText()
+        input = Day1::class.java.getResource(filename).readText()
     } 
 
-    fun part1(): Int? {
+    fun part1(): String? {
         return null
     }
    
-    fun part2(): Int?{
+    fun part2(): String?{
         return null
     }
     

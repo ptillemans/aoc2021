@@ -1,25 +1,30 @@
 package aoc2020
-import aoc2020.Day1
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.*
 
 class Day1Test {
-            val input = """
+    private val input = """
 """.trimIndent()
     
-    var challenge = Day1() 
+    private var challenge = Day1() 
     
     @BeforeEach
     fun setUp() {
+        challenge.input = input
     }
    
     @Test
     fun testPart1() {
-        
+        val actual = challenge.part1()
+        val expected = ""
+        assertEquals(expected, actual)
     }
    
     @Test
     fun testPart2() {
-        
+        val actual = challenge.part2()
+        val expected = ""
+        assertEquals(expected, actual)
     }
     
 }

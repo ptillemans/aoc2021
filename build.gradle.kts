@@ -71,10 +71,11 @@ abstract class AdventFetcher : DefaultTask() {
     fun generateBoilerPlate(year: Int, day: Int, hasInput : Boolean) {
 
         val inputPart = """
+                var input: String
                 
-                fun getInput(): String {
+                init {
                     val filename = "/aoc${year}/day${day}/input.txt"
-                    return Day${day}::class.java.getResource(filename).readText()
+                    input = Day${day}::class.java.getResource(filename).readText()
                 } 
         """
 
@@ -83,11 +84,11 @@ abstract class AdventFetcher : DefaultTask() {
            
             class Day${day} {
                 ${if (hasInput) inputPart else "\n"}
-                fun part1(): Int? {
+                fun part1(): String? {
                     return null
                 }
                
-                fun part2(): Int?{
+                fun part2(): String?{
                     return null
                 }
                 
@@ -111,26 +112,31 @@ abstract class AdventFetcher : DefaultTask() {
 
         val testText = """
             package aoc${year}
-            import aoc${year}.Day${day}
-            import org.junit.jupiter.api.*;
+            import org.junit.jupiter.api.*
+            import org.junit.jupiter.api.Assertions.*
            
             class Day${day}Test {
-                ${if (hasInput) "        val input = \"\"\"\n            \"\"\".trimIndent()" else "\n"}
+                ${if (hasInput) "private val input = \"\"\"\n            \"\"\".trimIndent()" else "\n"}
                 
-                var challenge = Day${day}() 
+                private var challenge = Day${day}() 
                 
                 @BeforeEach
                 fun setUp() {
+                    ${if (hasInput) "challenge.input = input" else ""}
                 }
                
                 @Test
                 fun testPart1() {
-                    
+                    val actual = challenge.part1()
+                    val expected = ""
+                    assertEquals(expected, actual)
                 }
                
                 @Test
                 fun testPart2() {
-                    
+                    val actual = challenge.part2()
+                    val expected = ""
+                    assertEquals(expected, actual)
                 }
                 
             }
