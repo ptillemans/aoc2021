@@ -68,17 +68,6 @@ abstract class AdventFetcher : DefaultTask() {
         return writeFile(pathname, "input.txt", text)
     }
 
-    fun writeFile(pathname: String, filename: String, text: String ) : Boolean {
-        val path = File(pathname)
-        if (path.isDirectory || path.mkdirs() ) {
-            println("Creating text file")
-            File(path, filename).writeText(text)
-            return true
-        }
-        println("ERROR: Could not create text file...")
-        return false
-    }
-
     fun generateBoilerPlate(year: Int, day: Int, hasInput : Boolean) {
 
         val inputPart = """
@@ -153,9 +142,29 @@ abstract class AdventFetcher : DefaultTask() {
         writeFile(testPathname, testFilename, testText)
     }
 
-    @set:Option(option="date", description = "Override date.")
+    fun writeFile(pathname: String, filename: String, text: String ) : Boolean {
+        val path = File(pathname)
+        if (path.isDirectory || path.mkdirs() ) {
+            val file = File(path, filename)
+            if (!file.isFile || forceOverwrite) {
+                println("Creating text file " + file.canonicalFile)
+                file.writeText(text)
+            } else {
+                println("Files already exist and --force flag not present.")
+            }
+            return true
+        }
+        println("ERROR: Could not create text file...")
+        return false
+    }
+
+    @set:Option(option="date", description = "Use a different date that today for older challenges.")
     @get:Input
     var overrideDate: String? = null
+
+    @set:Option(option="force", description = "Overwrite existing files.")
+    @get:Input
+    var forceOverwrite: Boolean = false
 
 
     @TaskAction
