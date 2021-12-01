@@ -23,7 +23,7 @@ class Day1 {
     fun part2(): String =
         parseInput(input)
             .windowed(size = 3, step = 1)
-            .map {it.reduce { s, x -> s + x  }}
+            .map {it.sum()}
             .countIncreases()
             .toString()
     
