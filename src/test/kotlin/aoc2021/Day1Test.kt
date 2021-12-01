@@ -38,13 +38,6 @@ class Day1Test {
     }
 
     @Test
-    fun testGrouping() {
-        val groups = challenge.parseInput(input).groupData(3)
-        assertEquals(groups[0], listOf(199, 200, 208))
-        assertEquals(8, groups.size)
-    }
-
-    @Test
     fun testPart2() {
         val actual = challenge.part2()
         val expected = "5"

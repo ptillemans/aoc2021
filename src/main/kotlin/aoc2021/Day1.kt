@@ -22,7 +22,7 @@ class Day1 {
 
     fun part2(): String =
         parseInput(input)
-            .groupData(3)
+            .windowed(size = 3, step = 1)
             .map {it.reduce { s, x -> s + x  }}
             .countIncreases()
             .toString()
@@ -41,11 +41,6 @@ fun List<Int>.countIncreases(): Int {
         .map { it.first < it.second }
         .filter { it }
         .count()
-}
-
-infix fun<T> List<T>.groupData(n: Int): List<List<T>> {
-    return (0 .. this.size-n)
-        .map {this.slice(it until  it+n)}
 }
 
 fun main(args: Array<String>) {
