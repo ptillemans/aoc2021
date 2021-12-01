@@ -16,7 +16,7 @@ class Day2 {
         return null
     }
    
-    fun part2(): String?{
+    fun part2(): String? {
         return null
     }
     

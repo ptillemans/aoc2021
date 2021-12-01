@@ -19,6 +19,7 @@ repositories {
 dependencies {
     testImplementation(kotlin("test"))
     implementation("com.google.code.gson:gson:2.8.9")
+    implementation("org.danilopianini:khttp:0.1.0-dev30+51fa9ae")
 }
 
 tasks.test {
@@ -30,7 +31,7 @@ tasks.withType<KotlinCompile>() {
 }
 
 application {
-    mainClassName = "MainKt"
+    mainClass.set("MainKt")
 }
 
 
@@ -92,7 +93,7 @@ abstract class AdventFetcher : DefaultTask() {
                     return null
                 }
                
-                fun part2(): String?{
+                fun part2(): String? {
                     return null
                 }
                 
@@ -131,14 +132,14 @@ abstract class AdventFetcher : DefaultTask() {
                 @Test
                 fun testPart1() {
                     val actual = challenge.part1()
-                    val expected = ""
+                    val expected = null
                     assertEquals(expected, actual)
                 }
                
                 @Test
                 fun testPart2() {
                     val actual = challenge.part2()
-                    val expected = ""
+                    val expected = null
                     assertEquals(expected, actual)
                 }
                 
@@ -194,6 +195,6 @@ abstract class AdventFetcher : DefaultTask() {
 tasks.register<Build_gradle.AdventFetcher>("fetch")
 
 task<JavaExec>("runChallenge") {
-    main = "aoc2021.Day1Kt"
-    classpath = java.sourceSets["main"].runtimeClasspath
+    mainClass.set("aoc2021.Day1Kt")
+    classpath = project.sourceSets["main"].runtimeClasspath
 }

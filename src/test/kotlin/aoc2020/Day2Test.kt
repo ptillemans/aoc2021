@@ -16,14 +16,14 @@ class Day2Test {
     @Test
     fun testPart1() {
         val actual = challenge.part1()
-        val expected = ""
+        val expected = null
         assertEquals(expected, actual)
     }
    
     @Test
     fun testPart2() {
         val actual = challenge.part2()
-        val expected = ""
+        val expected = null
         assertEquals(expected, actual)
     }
     

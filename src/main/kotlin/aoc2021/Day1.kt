@@ -30,10 +30,9 @@ class Day1 {
     
 }
 
-fun List<Int>.countIncreases(): Int {
-    return this.zipWithNext()
+fun List<Int>.countIncreases(): Int =
+    this.zipWithNext()
         .count { it.first < it.second }
-}
 
 fun main(args: Array<String>) {
     val challenge = Day1()
