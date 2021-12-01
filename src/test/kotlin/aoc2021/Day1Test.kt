@@ -26,22 +26,22 @@ class Day1Test {
     @Test
     fun testCountIncreases() {
         val data = challenge.parseInput(input)
-        val actual = challenge.countIncreases(data)
+        val actual = data.countIncreases()
         assertEquals(7, actual)
     }
 
     @Test
     fun testPart1() {
         val actual = challenge.part1()
-        val expected = "8"
+        val expected = "7"
         assertEquals(expected, actual)
     }
 
     @Test
     fun testGrouping() {
-        val groups = challenge.groupData(3, challenge.parseInput(input))
+        val groups = challenge.parseInput(input).groupData(3)
         assertEquals(groups[0], listOf(199, 200, 208))
-        assertEquals(groups.size, 7)
+        assertEquals(8, groups.size)
     }
 
     @Test

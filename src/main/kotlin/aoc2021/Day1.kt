@@ -9,32 +9,23 @@ class Day1 {
         input = Day1::class.java.getResource(filename).readText()
     } 
 
-    fun part1(): String? {
-        val data = parseInput(input)
-        val answer = countIncreases(data)
+    fun part1(): String =
+        parseInput(input)
+            .countIncreases()
+            .toString()
 
-        return answer.toString()
-    }
-
-    fun countIncreases(data: List<Int>): Int {
-        return data.zipWithNext()
-            .map { it.first < it.second }
-            .filter { it }
-            .count()
-    }
-
-    fun parseInput(input: String): List<Int> {
-        return input.split("\n")
+    fun parseInput(text: String): List<Int> {
+        return text.split("\n")
             .filter { it.isNotEmpty() }
             .map { it.toInt() }
     }
 
-    fun part2(): String?{
-        val data = parseInput(input)
-        val groupSums = groupData(3, data)
+    fun part2(): String =
+        parseInput(input)
+            .groupData(3)
             .map {it.reduce { s, x -> s + x  }}
-        return countIncreases(groupSums).toString()
-    }
+            .countIncreases()
+            .toString()
     
     fun main() {
         println("Part1: ")
@@ -43,10 +34,18 @@ class Day1 {
         println(part2())
     }
 
-    fun groupData(n: Int, data: List<Int>): List<List<Int>> {
-        return (0 .. data.size-n)
-            .map {data.slice(it until  it+n)}
-    }
+}
+
+fun List<Int>.countIncreases(): Int {
+    return this.zipWithNext()
+        .map { it.first < it.second }
+        .filter { it }
+        .count()
+}
+
+infix fun<T> List<T>.groupData(n: Int): List<List<T>> {
+    return (0 .. this.size-n)
+        .map {this.slice(it until  it+n)}
 }
 
 fun main(args: Array<String>) {
