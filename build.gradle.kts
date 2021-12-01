@@ -193,4 +193,7 @@ abstract class AdventFetcher : DefaultTask() {
 
 tasks.register<Build_gradle.AdventFetcher>("fetch")
 
-
+task<JavaExec>("runChallenge") {
+    main = "aoc2021.Day1Kt"
+    classpath = java.sourceSets["main"].runtimeClasspath
+}

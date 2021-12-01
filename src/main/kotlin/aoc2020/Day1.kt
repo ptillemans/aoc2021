@@ -25,7 +25,7 @@ class Day1 {
     }
 }
 
-fun main(args: Array<String>) {
+fun main(_args: Array<String>) {
     val challenge = Day1()
     challenge.main()
 }
