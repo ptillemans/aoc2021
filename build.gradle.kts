@@ -166,7 +166,7 @@ abstract class AdventFetcher : DefaultTask() {
 
     @set:Option(option="date", description = "Use a different date that today for older challenges.")
     @get:Input
-    var overrideDate: String? = null
+    var overrideDate: String= ""
 
     @set:Option(option="force", description = "Overwrite existing files.")
     @get:Input
@@ -175,7 +175,7 @@ abstract class AdventFetcher : DefaultTask() {
 
     @TaskAction
     fun fetchAdvent() {
-        var fetchDate = if (overrideDate == null) LocalDate.now() else LocalDate.parse(overrideDate)
+        var fetchDate = if (overrideDate == "") LocalDate.now() else LocalDate.parse(overrideDate)
         val day = fetchDate.dayOfMonth
         val year = fetchDate.year
 
