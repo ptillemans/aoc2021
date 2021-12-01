@@ -18,6 +18,7 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
+    implementation("com.google.code.gson:gson:2.8.9")
 }
 
 tasks.test {
@@ -76,12 +77,15 @@ abstract class AdventFetcher : DefaultTask() {
                 init {
                     val filename = "/aoc${year}/day${day}/input.txt"
                     input = Day${day}::class.java.getResource(filename).readText()
-                } 
+                }
+                
         """
 
         val text = """
             package aoc${year}
-           
+            
+            import com.google.gson.Gson 
+            
             class Day${day} {
                 ${if (hasInput) inputPart else "\n"}
                 fun part1(): String? {
@@ -92,17 +96,16 @@ abstract class AdventFetcher : DefaultTask() {
                     return null
                 }
                 
-                fun main() {
-                    println("Part1: ")
-                    println(part1())
-                    println("Part2: ")
-                    println(part2())
-                }
             }
 
             fun main(args: Array<String>) {
                 val challenge = Day${day}()
-                challenge.main()
+                val solutions = mapOf (
+                    "part1" to challenge.part1(),
+                    "part2" to challenge.part2(),
+                )
+                println("Solutions: ")
+                println(Gson().toJson(solutions))
             }
         """.trimIndent()
 

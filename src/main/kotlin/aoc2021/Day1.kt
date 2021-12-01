@@ -1,4 +1,5 @@
 package aoc2021
+import com.google.gson.Gson
 
 class Day1 {
     
@@ -7,18 +8,18 @@ class Day1 {
     init {
         val filename = "/aoc2021/day1/input.txt"
         input = Day1::class.java.getResource(filename).readText()
-    } 
-
-    fun part1(): String =
-        parseInput(input)
-            .countIncreases()
-            .toString()
+    }
 
     fun parseInput(text: String): List<Int> {
         return text.split("\n")
             .filter { it.isNotEmpty() }
             .map { it.toInt() }
     }
+
+    fun part1(): String =
+        parseInput(input)
+            .countIncreases()
+            .toString()
 
     fun part2(): String =
         parseInput(input)
@@ -27,23 +28,18 @@ class Day1 {
             .countIncreases()
             .toString()
     
-    fun main() {
-        println("Part1: ")
-        println(part1())
-        println("Part2: ")
-        println(part2())
-    }
-
 }
 
 fun List<Int>.countIncreases(): Int {
     return this.zipWithNext()
-        .map { it.first < it.second }
-        .filter { it }
-        .count()
+        .count { it.first < it.second }
 }
 
 fun main(args: Array<String>) {
     val challenge = Day1()
-    challenge.main()
+    val solutions = mapOf (
+        "part1" to challenge.part1(),
+        "part2" to challenge.part2(),
+    )
+    println("Solutions: ${Gson().toJson(solutions)}")
 }
