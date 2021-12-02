@@ -1,6 +1,8 @@
 package aoc2020
 
-import com.google.gson.Gson 
+import aoc2021.Command
+import aoc2021.Direction
+import com.google.gson.Gson
 
 class Day2 {
     
@@ -19,7 +21,8 @@ class Day2 {
     fun part2(): String? {
         return null
     }
-    
+
+
 }
 
 fun main(args: Array<String>) {
