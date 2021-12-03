@@ -26,7 +26,6 @@ class Day2 {
         return text.split("\n")
             .filter { it.isNotEmpty() }
             .map { it.toCommand() }
-
     }
 
     fun part1(): String? =
