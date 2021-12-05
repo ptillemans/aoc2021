@@ -34,7 +34,7 @@ fun List<Int>.countIncreases(): Int =
     this.zipWithNext()
         .count { it.first < it.second }
 
-fun main(args: Array<String>) {
+fun main() {
     val challenge = Day1()
     val solutions = mapOf (
         "part1" to challenge.part1(),

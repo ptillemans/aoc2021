@@ -70,7 +70,7 @@ fun List<Command>.calculateAimedPosition(start: Position = Position(0, 0)) : Pos
 
 fun Position.formatOutput() : String = (x * depth).toString()
 
-fun main(args: Array<String>) {
+fun main() {
     val challenge = Day2()
     val solutions = mapOf(
         "part1" to challenge.part1(),

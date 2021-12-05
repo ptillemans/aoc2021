@@ -82,8 +82,8 @@ class Day4Test {
         val balls = randomNumbers.slice(0 until 12)
         val actual = balls.indices
             .map {randomNumbers.slice(0..it)}
-            .flatMap { balls ->
-                boards.filter {board -> board.hasWon(balls)}
+            .flatMap { bs ->
+                boards.filter {board -> board.hasWon(bs)}
             }
             .first()
 

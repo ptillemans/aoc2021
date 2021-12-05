@@ -25,7 +25,7 @@ class Day2 {
 
 }
 
-fun main(args: Array<String>) {
+fun main() {
     val challenge = Day2()
     val solutions = mapOf (
         "part1" to challenge.part1(),

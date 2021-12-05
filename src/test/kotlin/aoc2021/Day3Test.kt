@@ -98,6 +98,7 @@ class Day3Test {
             listOf(1,0,1,0,1),
             listOf(1,0,0,0,0),
         )
+        assertEquals(expected2, actual2)
     }
 
     @Test
