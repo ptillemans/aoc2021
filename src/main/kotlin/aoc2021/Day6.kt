@@ -35,29 +35,19 @@ class Day6 {
 
 }
 
-fun PopulationFrequency.updateTimers(): PopulationFrequency {
-    val pop = this.map { (it.key - 1) to it.value}.toMap().toMutableMap()
-    pop[6] = (pop[6]?: ZERO) + (pop[-1]?: ZERO)
-    pop[8] = ZERO
-    pop.remove(-1)
-    return pop.toMap()
-}
+fun PopulationFrequency.newGeneration(): PopulationFrequency =
+    this.map { (it.key - 1) to it.value}
+        .toMap()
+        .plus(Pair(6, (this[0]?: ZERO) + (this[7]?: ZERO))) //reset + previous born
+        .plus(Pair(8, this[0]?: ZERO))                      // newly born
+        .minus(-1)                                          // remove previous 0 entry
+        .filter { (_, v) -> v != ZERO}                      // clean zero entries
 
-fun PopulationFrequency.newBorns(): BigInteger = this[0]?:BigInteger.valueOf(0)
-
-fun PopulationFrequency.newGeneration(): PopulationFrequency{
-    var population = this.updateTimers().toMutableMap()
-    population[8] = this.newBorns()
-    return population
-}
-
-fun List<Int>.toPopulationFrequency():PopulationFrequency {
-    val pop = (0..8).associateWith { ZERO }.toMutableMap()
-    for ((k,v) in this.sorted().groupBy { it }) {
-         pop[k]=BigInteger.valueOf(v.size.toLong())
-    }
-    return pop.toMap()
-}
+fun List<Int>.toPopulationFrequency():PopulationFrequency =
+    this.sorted()
+        .groupBy { it }
+        .map { (k, v) -> k to BigInteger.valueOf(v.size.toLong()) }
+        .toMap()
 
 
 fun main(args: Array<String>) {
