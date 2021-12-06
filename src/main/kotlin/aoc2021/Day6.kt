@@ -19,21 +19,22 @@ class Day6 {
     
 
     fun part1(): String =
-        (0 until 80)
-            .fold(input.toPopulationFrequency()){ acc, _ -> acc.newGeneration()}
-            .map { it.value }
-            .reduce { acc, x -> acc + x}
+        input.toPopulationFrequency().populationCount(80)
             .toString()
 
 
     fun part2(): String =
-        (0 until 256)
-            .fold(input.toPopulationFrequency()){ acc, _ -> acc.newGeneration()}
-            .map { it.value }
-            .reduce { acc, x -> acc + x}
+        input.toPopulationFrequency().populationCount(256)
             .toString()
 
 }
+
+fun PopulationFrequency.populationCount(generations: Int): BigInteger =
+    (0 until generations)
+        .fold(this){ acc, _ -> acc.newGeneration()}
+        .map { it.value }
+        .reduce { acc, x -> acc + x}
+
 
 fun PopulationFrequency.newGeneration(): PopulationFrequency =
     this.map { (it.key - 1) to it.value}
