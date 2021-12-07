@@ -55,7 +55,7 @@ fun List<Int>.findOptimum(fuel: List<Int>.(Int) -> Int = fuelConsumption):Pair<I
 }
 
 
-fun main(args: Array<String>) {
+fun main() {
     val challenge = Day7()
     val solutions = mapOf (
         "part1" to challenge.part1(),

@@ -51,7 +51,7 @@ fun List<Int>.toPopulationFrequency():PopulationFrequency =
         .toMap()
 
 
-fun main(args: Array<String>) {
+fun main() {
     val challenge = Day6()
     val solutions = mapOf (
         "part1" to challenge.part1(),

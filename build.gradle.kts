@@ -99,7 +99,7 @@ abstract class AdventFetcher : DefaultTask() {
                 
             }
 
-            fun main(args: Array<String>) {
+            fun main() {
                 val challenge = Day${day}()
                 val solutions = mapOf (
                     "part1" to challenge.part1(),
