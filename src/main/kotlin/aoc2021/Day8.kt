@@ -59,9 +59,9 @@ class Day8 {
     
 }
 
-fun main(args: Array<String>) {
+fun main() {
     val challenge = Day8()
-    val solutions = mapOf (
+    val solutions = mapOf(
         "part1" to challenge.part1(),
         "part2" to challenge.part2(),
     )
