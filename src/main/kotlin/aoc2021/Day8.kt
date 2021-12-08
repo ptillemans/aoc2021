@@ -26,7 +26,10 @@ class Day8 {
 
     fun parseLine(s:String): Pair<List<String>, List<String>> =
         s.split("|")
-            .map { p -> p.trim().split(" ").map { it.trim() }}
+            .map { p -> p.trim()
+                .split(" ")
+                .map { it.trim().toCharArray().sorted().joinToString("") }
+            }
             .zipWithNext()
             .first()
 
@@ -54,9 +57,63 @@ class Day8 {
     }
    
     fun part2(): String? {
-        return null
+        val data = parseInput(input)
+        return data.sumOf { lineOutput(it) }.toString()
     }
-    
+
+    fun mapDigits(digits: List<String>): Map<String, Int> {
+        val digit1 = digits.filter { it.length == 2 }.first()
+
+        // first 5 are easy, 4 have unique length
+        // 2 is the only one missing segment f
+        var mapping = mapOf<String, Int>(
+            digit1 to 1,
+            findDigit2(digits) to 2,
+            digits.filter { it.length == 4 }.first() to 4,
+            digits.filter { it.length == 3 }.first() to 7,
+            digits.filter { it.length == 7 }.first() to 8,
+        )
+
+        // 0 and 3 are the only one remaining missing just segment b or d
+        var remaining = digits.filter { !mapping.keys.contains(it) }
+        mapping = findDigit03(remaining).fold(mapping) { acc, p -> acc + p}
+
+        // 5 is the only one remaining with 5 segments
+        remaining = remaining.filter { !mapping.keys.contains(it) }
+        mapping = mapping + (remaining.first{it.length == 5} to 5)
+
+        // 9 contains same segments as 1, 6 does not
+        remaining = remaining.filter { !mapping.keys.contains(it) }
+        val (digit9, digit6) = remaining.partition { s -> digit1.toCharArray().all { c -> s.contains(c) } }
+        return mapping.plus(digit6.first() to 6).plus(digit9.first() to 9)
+    }
+
+    fun findDigit2(digits: List<String>): String {
+        val freq = digits
+            .fold(mapOf<Char, Int>()) { acc, x ->
+                x.toCharArray().fold(acc) { acc, c -> acc + Pair(c, (acc[c]?:0) + 1)}
+            }
+        val segment = freq.filter { it.value == 9 }.map { it.key }.first()
+        return digits.first { !it.contains(segment) }
+    }
+
+    fun findDigit03(digits: List<String>): List<Pair<String, Int>> {
+        val freq = digits
+            .fold(mapOf<Char, Int>()) { acc, x ->
+                x.toCharArray().fold(acc) { acc, c -> acc + Pair(c, (acc[c]?:0) + 1)}
+            }
+        return freq
+            .filter { it.value == 4 }
+            .map { it.key }
+            .flatMap { segment -> digits.filter { !it.contains(segment)} }
+            .map { Pair(it, if (it.length==6) 0 else 3)}
+    }
+
+    fun lineOutput(line: Pair<List<String>, List<String>>): Int {
+        val mapping = mapDigits(line.first)
+        return line.second.map { mapping[it]?:0 }.reduce {acc, x -> 10*acc + x}
+    }
+
 }
 
 fun main() {
