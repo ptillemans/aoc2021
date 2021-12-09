@@ -26,7 +26,7 @@ tasks.test {
     useJUnitPlatform()
 }
 
-tasks.withType<KotlinCompile>() {
+tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "11"
 }
 
@@ -46,7 +46,7 @@ buildscript {
 
 abstract class AdventFetcher : DefaultTask() {
 
-    fun readCookies() : Map<String, String> {
+    private fun readCookies() : Map<String, String> {
         return File("cookies.txt")
             .readLines()
             .asSequence()
@@ -57,7 +57,7 @@ abstract class AdventFetcher : DefaultTask() {
             .filter { it.size == 7 }.associate { it[5] to it[6] }
     }
 
-    fun getInput(year: Int, day: Int): Boolean {
+    private fun getInput(year: Int, day: Int): Boolean {
 
         val url = "https://adventofcode.com/${year}/day/${day}/input"
         val r = get(url, cookies = readCookies())
@@ -70,7 +70,7 @@ abstract class AdventFetcher : DefaultTask() {
         return writeFile(pathname, "input.txt", text)
     }
 
-    fun generateBoilerPlate(year: Int, day: Int, hasInput : Boolean) {
+    private fun generateBoilerPlate(year: Int, day: Int, hasInput : Boolean) {
 
         val inputPart = """
                 var input: String
@@ -152,7 +152,7 @@ abstract class AdventFetcher : DefaultTask() {
         writeFile(testPathname, testFilename, testText)
     }
 
-    fun writeFile(pathname: String, filename: String, text: String ) : Boolean {
+    private fun writeFile(pathname: String, filename: String, text: String ) : Boolean {
         val path = File(pathname)
         if (path.isDirectory || path.mkdirs() ) {
             val file = File(path, filename)
@@ -179,7 +179,7 @@ abstract class AdventFetcher : DefaultTask() {
 
     @TaskAction
     fun fetchAdvent() {
-        var fetchDate = if (overrideDate == "") LocalDate.now() else LocalDate.parse(overrideDate)
+        val fetchDate = if (overrideDate == "") LocalDate.now() else LocalDate.parse(overrideDate)
         val day = fetchDate.dayOfMonth
         val year = fetchDate.year
 
@@ -192,7 +192,7 @@ abstract class AdventFetcher : DefaultTask() {
     }
 }
 
-tasks.register<Build_gradle.AdventFetcher>("fetch")
+tasks.register<AdventFetcher>("fetch")
 
 task<JavaExec>("runChallenge") {
     mainClass.set("aoc2021.Day1Kt")

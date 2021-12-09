@@ -1,7 +1,6 @@
 package aoc2021
 
 import com.google.gson.Gson
-import kotlin.system.measureTimeMillis
 
 class Day8 {
     
@@ -84,10 +83,7 @@ class Day8 {
     }
 
     fun findDigit2(digits: List<String>): String {
-        val freq = digits
-            .fold(mapOf<Char, Int>()) { acc, x ->
-                x.toCharArray().fold(acc) { acc, c -> acc + (c to (acc[c]?:0) + 1)}
-            }
+        val freq = frequencyMap(digits)
         // find the segment missing in just 1 digit
         val segment = freq.filter { it.value == 9 }.map { it.key }.first()
         // return that digit
@@ -95,16 +91,21 @@ class Day8 {
     }
 
     fun findDigit03(digits: List<String>): List<Pair<String, Int>> {
-        val freq = digits
-            .fold(mapOf<Char, Int>()) { acc, x ->
-                x.toCharArray().fold(acc) { acc, c -> acc + Pair(c, (acc[c]?:0) + 1)}
-            }
+        val freq = frequencyMap(digits)
         return freq
             .filter { it.value == 4 }
             .map { it.key }
             .flatMap { segment -> digits.filter { !it.contains(segment)} }
             .map { Pair(it, if (it.length==6) 0 else 3)}
     }
+
+    private fun frequencyMap(digits: List<String>): Map<Char, Int> =
+        digits
+            .fold(mapOf()) { freqMap, x ->
+                x.toCharArray().fold(freqMap) {
+                        acc, c ->  acc + Pair(c, (acc[c] ?: 0) + 1)
+                }
+            }
 
     fun lineOutput(line: Pair<List<String>, List<String>>): Int {
         val mapping = mapDigits(line.first)
@@ -115,17 +116,10 @@ class Day8 {
 
 fun main() {
     val challenge = Day8()
-    val runtime = measureTimeMillis {
-        val solutions = mapOf(
-            "part1" to challenge.part1(),
-            "part2" to challenge.part2(),
-        )
-    }
     val solutions = mapOf(
         "part1" to challenge.part1(),
         "part2" to challenge.part2(),
     )
-    println("runtime: " + runtime + "ms")
     println("Solutions: ")
     println(Gson().toJson(solutions))
 }

@@ -1,5 +1,6 @@
 package aoc2021
 
+import common.toIntMatrix
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 
@@ -14,8 +15,7 @@ class Day9Test {
 
     private val heightMap: HeightMap
         get() {
-            val heightMap = input.toHeightMap()
-            return heightMap
+            return input.toIntMatrix(9)
         }
 
     private var challenge = Day9()
@@ -23,41 +23,6 @@ class Day9Test {
     @BeforeEach
     fun setUp() {
         challenge.input = input
-    }
-
-    @Test
-    fun parseInputDimensions() {
-        assertEquals(5, heightMap.nRows)
-        assertEquals(10, heightMap.nCols)
-    }
-
-    @Test
-    fun parseInputBody() {
-        assertEquals(2, heightMap.element(0, 0))
-        assertEquals(5, heightMap.element(2, 2))
-        assertEquals(8, heightMap.element(9, 4))
-    }
-
-    @Test
-    fun testMatrixBoundaries() {
-        assertEquals(Int.MAX_VALUE, heightMap.element(-1, 0))
-        assertEquals(Int.MAX_VALUE, heightMap.element(heightMap.nCols, 0))
-        assertEquals(Int.MAX_VALUE, heightMap.element(0, -1))
-        assertEquals(Int.MAX_VALUE, heightMap.element(0, heightMap.nCols))
-    }
-
-    @Test
-    fun testMatrixRow() {
-        val line = input.split("\n")[1].split("").filter { it.isNotBlank() }
-        val expected = line.map { it.toInt() }
-        assertEquals(expected, heightMap.row(1))
-    }
-
-    @Test
-    fun testMatrixColumn() {
-        val lines = input.split("\n")
-        val expected = lines.map { it[2].toString().toInt() }
-        assertEquals(expected, heightMap.column(2))
     }
 
     @Test

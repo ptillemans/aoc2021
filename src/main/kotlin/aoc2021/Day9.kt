@@ -1,24 +1,10 @@
 package aoc2021
 
 import com.google.gson.Gson
+import common.IntMatrix
+import common.toIntMatrix
 
-data class HeightMap(val nRows: Int, val body: List<Int>, val default: Int = Int.MAX_VALUE) {
-    val nCols: Int = body.size / nRows
-
-    fun element(x: Int, y: Int): Int =
-        if (x in 0 until nCols && y in 0 until nRows)
-            body[y * nCols + x]
-        else
-            default
-
-    fun element(pos: Pair<Int, Int>): Int = pos.let{ (x, y) -> element(x, y) }
-
-    fun row(r: Int): Any? = body.slice(r * nCols until (r + 1) * nCols)
-
-    fun column(c: Int): Any? = (c until c + nRows * nCols step nCols).map { body[it] }
-
-}
-
+typealias HeightMap = IntMatrix
 
 class Day9 {
 
@@ -26,32 +12,22 @@ class Day9 {
 
     init {
         val filename = "/aoc2021/day9/input.txt"
-        input = Day9::class.java.getResource(filename).readText()
+        input = Day9::class.java.getResource(filename)!!.readText()
     }
 
 
     fun part1(): String =
-        input.toHeightMap()
+        input.toIntMatrix(invalidValue=9)
             .riskLevel()
             .toString()
 
     fun part2(): String =
-        input.toHeightMap()
+        input.toIntMatrix(9)
             .findBasinsDecreasingSizes()
             .take(3)
             .reduce { acc, x -> acc * x }
             .toString()
 
-}
-
-fun String.toHeightMap(): HeightMap {
-    val lines = this.trim().split("\n")
-    val nRows = lines.size
-    val body = this.trim()
-        .split("")
-        .filter { it.isNotBlank() }
-        .map { it.toInt() }
-    return HeightMap(nRows, body)
 }
 
 val neighbours = listOf(
@@ -76,7 +52,7 @@ operator fun Pair<Int, Int>.plus(b : Pair<Int, Int>) = Pair(this.first+b.first, 
 
 fun HeightMap.localMinima(): Set<Pair<Int, Int>> =
     (0 until this.nRows).flatMap { y ->
-        (0 until this.nCols).map { x ->
+        (0 until this.nColumns).map { x ->
             Pair(x, y)
         }
     }
@@ -84,23 +60,28 @@ fun HeightMap.localMinima(): Set<Pair<Int, Int>> =
         .toSet()
 
 fun HeightMap.riskLevel(): Int =
-    this.localMinima()
-        .map { this.element(it) + 1}
-        .sum()
+    this.localMinima().sumOf { this.element(it) + 1 }
 
 fun HeightMap.findBasin(minima: Pair<Int, Int>): Set<Pair<Int, Int>> {
-    var basin: MutableSet<Pair<Int, Int>> = mutableSetOf(minima)
+    var basin: MutableSet<Pair<Int, Int>> = mutableSetOf()
     val open = ArrayDeque<Pair<Int,Int>>()
+
+    // put the first seed of the basin
     open.add(minima)
 
+    // let the basin grow around the seed
     while (open.isNotEmpty()) {
+        // take next location from the unprocessed locations
         val location = open.removeFirst()
+        basin.add(location)    // add it to the basin
+
+        // find neighbours to add to the basin
         val next = neighbours
-            .map { location + it}
-            .filter { !basin.contains(it)}
-            .filter { this.element(it) < 9 }
+            .map { location + it}            // next neighbour
+            .filter { !basin.contains(it)}   // skip neighbours already grown to the seed
+            .filter { this.element(it) < 9 } // do not include basin edges
+
         open.addAll(next)
-        basin.addAll(next)
     }
     return basin
 }
