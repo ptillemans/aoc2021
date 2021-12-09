@@ -1,6 +1,7 @@
 package aoc2021
 
-import com.google.gson.Gson 
+import com.google.gson.Gson
+import kotlin.system.measureTimeMillis
 
 class Day8 {
     
@@ -45,12 +46,6 @@ class Day8 {
             .flatMap { it.second }
             .count { setOf(2, 3, 4, 7).contains(it.length)}
 
-    fun allCombinations() : Map<Int, Set<Char>> =
-        (0..9)
-            .map { it to "abcdefg".toCharArray().toSet()}
-            .toMap()
-
-
     fun part1(): String {
         val data = parseInput(input)
         return uniqueOutputPatterns(data).toString()
@@ -85,15 +80,17 @@ class Day8 {
         // 9 contains same segments as 1, 6 does not
         remaining = remaining.filter { !mapping.keys.contains(it) }
         val (digit9, digit6) = remaining.partition { s -> digit1.toCharArray().all { c -> s.contains(c) } }
-        return mapping.plus(digit6.first() to 6).plus(digit9.first() to 9)
+        return mapping + (digit6.first() to 6) + (digit9.first() to 9)
     }
 
     fun findDigit2(digits: List<String>): String {
         val freq = digits
             .fold(mapOf<Char, Int>()) { acc, x ->
-                x.toCharArray().fold(acc) { acc, c -> acc + Pair(c, (acc[c]?:0) + 1)}
+                x.toCharArray().fold(acc) { acc, c -> acc + (c to (acc[c]?:0) + 1)}
             }
+        // find the segment missing in just 1 digit
         val segment = freq.filter { it.value == 9 }.map { it.key }.first()
+        // return that digit
         return digits.first { !it.contains(segment) }
     }
 
@@ -118,10 +115,17 @@ class Day8 {
 
 fun main() {
     val challenge = Day8()
+    val runtime = measureTimeMillis {
+        val solutions = mapOf(
+            "part1" to challenge.part1(),
+            "part2" to challenge.part2(),
+        )
+    }
     val solutions = mapOf(
         "part1" to challenge.part1(),
         "part2" to challenge.part2(),
     )
+    println("runtime: " + runtime + "ms")
     println("Solutions: ")
     println(Gson().toJson(solutions))
 }
