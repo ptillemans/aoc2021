@@ -1,11 +1,12 @@
 package aoc2021
 
 import com.google.gson.Gson
+import common.IntMatrix
 import common.splitOn
 import common.toIntList
 import common.toIntMatrix
 
-typealias Board = List<List<Int>>
+typealias Board = IntMatrix
 
 class Day4 {
     
@@ -62,18 +63,18 @@ class Day4 {
 }
 
 fun Board.hasWon(balls: List<Int>): Boolean {
-    val rowWins = this
-        .map {row: List<Int> -> row.all { balls.contains(it) }}
+    val rowWins = this.rows()
+        .map {row-> row.all { balls.contains(it) }}
         .any {it}
-    val colWins = (0 until this[0].size)
-        .map { col -> this.map { it[col]}.all { balls.contains(it)}}
+    val colWins = this.columns()
+        .map { col -> col.all { balls.contains(it)}}
         .any {it}
     return rowWins || colWins
 }
 
 fun Board.score(balls: List<Int>): Int {
     val lastBall = balls.last()
-    val unmarkedNumbers = this
+    val unmarkedNumbers = this.rows()
         .flatMap { it.filter {!balls.contains(it)}}
     return lastBall * unmarkedNumbers.sum()
 }
