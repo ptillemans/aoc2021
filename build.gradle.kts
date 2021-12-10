@@ -5,7 +5,7 @@ import java.time.Month
 import khttp.get
 
 plugins {
-    kotlin("jvm") version "1.5.21"
+    kotlin("jvm") version "1.6.0"
     application
 }
 
