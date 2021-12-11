@@ -2,7 +2,11 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.File
 import java.time.LocalDate
 import java.time.Month
-import khttp.get
+import io.ktor.client.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import kotlinx.coroutines.runBlocking
 
 plugins {
     kotlin("jvm") version "1.6.0"
@@ -20,7 +24,8 @@ repositories {
 dependencies {
     testImplementation(kotlin("test"))
     implementation("com.google.code.gson:gson:2.8.9")
-    implementation("org.danilopianini:khttp:0.1.0-dev30+51fa9ae")
+    implementation("io.ktor:ktor-client-core:1.6.7")
+    implementation("io.ktor:ktor-client-cio:1.6.7")
 }
 
 tasks.test {
@@ -34,19 +39,19 @@ application {
     mainClass.set("MainKt")
 }
 
-
 buildscript {
     repositories {
         mavenCentral()
     }
     dependencies {
-        classpath("org.danilopianini:khttp:0.1.0-dev30+51fa9ae")
+        classpath("io.ktor:ktor-client-core:1.6.7")
+        classpath("io.ktor:ktor-client-cio:1.6.7")
     }
 }
 
 abstract class AdventFetcher : DefaultTask() {
 
-    private fun readCookies() : Map<String, String> {
+    private fun readCookies() : Array<io.ktor.http.Cookie> {
         return File("cookies.txt")
             .readLines()
             .asSequence()
@@ -54,19 +59,31 @@ abstract class AdventFetcher : DefaultTask() {
             .map { it.trim() }
             .filter { it.isNotEmpty() }
             .map { it.split("\t") }
-            .filter { it.size == 7 }.associate { it[5] to it[6] }
+            .filter { it.size == 7 }
+            .map { io.ktor.http.Cookie(name=it[5], value = it[6], domain = it[0], path=it[2]) }
+            .toList().toTypedArray()
     }
 
-    private fun getInput(year: Int, day: Int): Boolean {
-
+    private suspend fun getInput(year: Int, day: Int): Boolean {
+        val httpClient = HttpClient {
+            install(io.ktor.client.features.cookies.HttpCookies) {
+                val cookies = readCookies()
+                storage = io.ktor.client.features.cookies.ConstantCookiesStorage(*cookies)
+            }
+        }
         val url = "https://adventofcode.com/${year}/day/${day}/input"
-        val r = get(url, cookies = readCookies())
-        if (r.statusCode != 200) {
+        val r = httpClient.get<io.ktor.client.statement.HttpResponse> {
+            url(url)
+            method = io.ktor.http.HttpMethod.Get
+        }
+
+        if (r.status != HttpStatusCode.OK) {
             return false
         }
 
         val pathname = "src/main/resources/aoc${year}/day${day}"
-        val text = r.text
+        val text = r.readText()
+        httpClient.close()
         return writeFile(pathname, "input.txt", text)
     }
 
@@ -184,8 +201,10 @@ abstract class AdventFetcher : DefaultTask() {
         val year = fetchDate.year
 
         if (fetchDate.month == Month.DECEMBER && fetchDate.dayOfMonth <= 25) {
-            val hasInput = getInput(year, day)
-            generateBoilerPlate(year, day, hasInput)
+            runBlocking {
+                val hasInput = getInput(year, day)
+                generateBoilerPlate(year, day, hasInput)
+            }
         } else {
             println("Error : Not an advent day!!!")
         }
