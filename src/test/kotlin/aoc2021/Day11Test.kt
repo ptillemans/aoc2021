@@ -58,7 +58,8 @@ class Day11Test {
     @Test
     fun testHandleFlashes() {
         val actual = smallExample[0].increaseEnergy().handleFlashes()
-        assertEquals(smallExample[1], actual)
+        assertEquals(smallExample[1], actual.first)
+        assertEquals(9, actual.second)
     }
 
     @Test
@@ -85,9 +86,16 @@ class Day11Test {
             result = newResult
             if (largeExample[it] != null) {
                 assertEquals(largeExample[it], result)
+                println("Iteration ${it} verified.")
             }
             println("Iteration ${it} with ${totalFlashes}.")
         }
+    }
+
+    @Test
+    fun testIterateTillAllFlash() {
+        val initial = largeExample[0]!!
+        assertEquals(195, initial.cyclesTillAllFlash() )
     }
 
     @Test
@@ -95,12 +103,14 @@ class Day11Test {
         challenge.input = largeExample[0]!!
         val actual = challenge.part1()
         val expected = "1656"
+        assertEquals(expected, actual)
     }
    
     @Test
     fun testPart2() {
+        challenge.input = largeExample[0]!!
         val actual = challenge.part2()
-        val expected = null
+        val expected = "195"
         assertEquals(expected, actual)
     }
     

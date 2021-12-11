@@ -14,20 +14,22 @@ class Day11 {
     }
     
 
-    fun part1(): String? =
-        (0..100).
-            fold(Pair(input, 0)) { (res, flashes),_  ->
-                res.increaseEnergy().handleFlashes(flashes)
-            }
+    fun part1(): String =
+        iterateOctopusStates(input, 100)
             .second
             .toString()
 
    
-    fun part2(): String? {
-        return null
-    }
+    fun part2(): String =
+        input.cyclesTillAllFlash().toString()
     
 }
+
+fun iterateOctopusStates(initial: IntMatrix, n:Int):Pair<IntMatrix, Int> =
+    (1..n).fold(Pair(initial, 0)) { state, _ -> state.nextOctopusState() }
+
+fun Pair<IntMatrix, Int>.nextOctopusState(): Pair<IntMatrix, Int> =
+    this.first.increaseEnergy().handleFlashes(this.second)
 
 fun IntMatrix.increaseEnergy() =
     IntMatrix(this.nRows, this.elements().map { it + 1})
@@ -59,6 +61,11 @@ fun IntMatrix.flash(pos: Pair<Int, Int>, hasFlashed: Set<Pair<Int, Int>>): IntMa
                     acc.set(p, acc.get(p)+1)
             }
     }
+
+fun IntMatrix.cyclesTillAllFlash(): Int =
+    generateSequence(Pair(this,0)) { Pair(it.first, 0).nextOctopusState() }
+        .takeWhile { it.second != it.first.body.size }
+        .count()
 
 fun main() {
     val challenge = Day11()
