@@ -7,6 +7,7 @@ import khttp.get
 plugins {
     kotlin("jvm") version "1.6.0"
     application
+    id("org.jetbrains.kotlinx.kover") version "0.4.4"
 }
 
 group = "me.pti"
@@ -25,7 +26,6 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
-
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "11"
 }
