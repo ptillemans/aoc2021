@@ -11,6 +11,7 @@ sealed class NavParseResult {
 
 private val openingChar = mapOf(')' to '(', '}' to '{', ']' to '[', '>' to '<')
 private val closingChar = mapOf('(' to ')', '[' to ']', '{' to  '}', '<' to '>')
+
 private val charScore = mapOf(
     ')' to 3,
     ']' to 57,
