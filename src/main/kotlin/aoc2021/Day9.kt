@@ -38,9 +38,9 @@ val neighbours = listOf(
 )
 
 fun HeightMap.isLocalMinima(p: Pair<Int, Int>): Boolean {
-    val result =  this.element(p).let { v ->
+    val result =  this.get(p).let { v ->
         neighbours.map { dp ->
-                this.element(p + dp).let {
+                this.get(p + dp).let {
                         vNeighbour -> v < vNeighbour
                 }
         }
@@ -60,7 +60,7 @@ fun HeightMap.localMinima(): Set<Pair<Int, Int>> =
         .toSet()
 
 fun HeightMap.riskLevel(): Int =
-    this.localMinima().sumOf { this.element(it) + 1 }
+    this.localMinima().sumOf { this.get(it) + 1 }
 
 fun HeightMap.findBasin(minima: Pair<Int, Int>): Set<Pair<Int, Int>> {
     var basin: MutableSet<Pair<Int, Int>> = mutableSetOf()
@@ -79,7 +79,7 @@ fun HeightMap.findBasin(minima: Pair<Int, Int>): Set<Pair<Int, Int>> {
         val next = neighbours
             .map { location + it}            // next neighbour
             .filter { !basin.contains(it)}   // skip neighbours already grown to the seed
-            .filter { this.element(it) < 9 } // do not include basin edges
+            .filter { this.get(it) < 9 } // do not include basin edges
 
         open.addAll(next)
     }
