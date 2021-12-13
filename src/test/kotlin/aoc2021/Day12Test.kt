@@ -88,21 +88,21 @@ class Day12Test {
 
     @Test
     fun `test part2 with small example`() {
-        val actual = sample.edges.generatePaths(canVisit = canVisitPart2)
+        val actual = sample.edges.generatePaths(canVisit = ::canVisitPart2)
         assertEquals(sample.nPathsPart2, actual.size)
 
     }
 
     @Test
     fun `test part2 with larger example`() {
-        val actual = sample2.edges.generatePaths(canVisit = canVisitPart2)
+        val actual = sample2.edges.generatePaths(canVisit = ::canVisitPart2)
         assertEquals(sample2.nPathsPart2, actual.size)
 
     }
 
     @Test
     fun `test part2 with much larger example`() {
-        val actual = sample3.edges.generatePaths(canVisit = canVisitPart2)
+        val actual = sample3.edges.generatePaths(canVisit = ::canVisitPart2)
         assertEquals(sample3.nPathsPart2, actual.size)
     }
 
