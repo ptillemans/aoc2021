@@ -2,6 +2,7 @@ package aoc2021
 
 import com.google.gson.Gson
 import common.IntMatrix
+import common.neighbours
 import common.toIntMatrix
 
 typealias HeightMap = IntMatrix
@@ -29,13 +30,6 @@ class Day9 {
             .toString()
 
 }
-
-val neighbours = listOf(
-    Pair(-1, 0),
-    Pair(1, 0),
-    Pair(0, -1),
-    Pair(0, 1)
-)
 
 fun HeightMap.isLocalMinima(p: Pair<Int, Int>): Boolean {
     val result =  this.get(p).let { v ->

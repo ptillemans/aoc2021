@@ -1,6 +1,7 @@
 package aoc2021
 
 import com.google.gson.Gson
+import common.Point
 import java.io.File
 import java.lang.System.lineSeparator
 

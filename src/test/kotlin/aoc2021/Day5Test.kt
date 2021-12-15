@@ -1,4 +1,6 @@
 package aoc2021
+import common.Point
+import common.toPoint
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 

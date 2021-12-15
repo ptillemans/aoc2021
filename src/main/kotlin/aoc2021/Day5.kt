@@ -1,9 +1,9 @@
 package aoc2021
 
 import com.google.gson.Gson
-import kotlin.math.sign
+import common.Point
+import common.toPoint
 
-typealias Point = Pair<Int, Int>
 typealias Line = Pair<Point, Point>
 typealias CoverMap = Map<Point, Int>
 
@@ -54,25 +54,14 @@ fun String.toLine(): Line =
         .map { it.toPoint() }
         .toLine()
 
-fun List<Int>.toPoint(): Point {
-    require(this.size==2)
-    val (a, b) = this
-    return Point(a, b)
-}
-
-fun String.toPoint(): Point =
-    this.split(',')
-        .map {it.trim().toInt() }
-        .toPoint()
-
 
 fun Line.coveredPoints(addDiagonals: Boolean = false): Set<Point> {
     fun sign(a:Int, b:Int): Int = if (a < b) 1 else if (a > b) -1 else 0
     fun span(a:Int, b:Int): IntProgression = IntProgression.fromClosedRange(a, b, sign(a, b))
     val (p1, p2) = this
     return when {
-        (p1.first == p2.first) -> span(p1.second,p2.second).map { Point(p1.first, it)}
-        (p1.second == p2.second) -> span(p1.first,p2.first).map { Point(it, p1.second)}
+        (p1.first == p2.first) -> span(p1.second,p2.second).map { Point(p1.first, it) }
+        (p1.second == p2.second) -> span(p1.first,p2.first).map { Point(it, p1.second) }
         else ->
             if (addDiagonals)
                 span(p1.first, p2.first).zip(span(p1.second, p2.second))
