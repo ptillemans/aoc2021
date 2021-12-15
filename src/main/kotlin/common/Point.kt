@@ -13,5 +13,5 @@ fun String.toPoint(): Point =
         .map {it.trim().toInt() }
         .toPoint()
 
-operator fun Point.plus(b: Point) = Pair(this.first + b.second, this.first + b.second)
-operator fun Point.minus(b: Point) = Pair(this.first - b.second, this.first - b.second)
+operator fun Point.plus(b: Point) = Pair(this.first + b.first, this.second + b.second)
+operator fun Point.minus(b: Point) = Pair(this.first - b.first, this.second - b.second)

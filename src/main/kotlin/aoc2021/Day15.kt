@@ -34,7 +34,8 @@ data class Day15Node(val cost: Int, val position: Point, val previous: Day15Node
 
 fun manhattan(map: IntMatrix, n: Day15Node): Int {
     val endPoint = Point(map.nColumns-1, map.nRows-1)
-    return (endPoint - n.position).toList().sum()
+    val dist =  (endPoint - n.position).toList()
+    return dist.sum()
 }
 
 fun canVisit(map: IntMatrix, n: Day15Node): Boolean = map.get(n.position) < 10
@@ -62,7 +63,7 @@ fun IntMatrix.findPath(
         if (location.position == endPoint) {
             break
         }
-        closed[location.position] = location.cost
+        closed[location.position] = this.g(location) + this.h(location)
 
         // find neighbours to add to the basin
         val next = neighbours
@@ -70,8 +71,9 @@ fun IntMatrix.findPath(
             .map { Day15Node(g(location) + this.get(it), it, location) }
             .filter { this.canVisit(it)}
             .map { Pair( it, this.g(it) + this.h(it))}
-            .filter { (closed[it.first.position]?:Int.MAX_VALUE) > it.second }   // skip neighbours with shorter path
+            .filter { it.second < (closed[it.first.position]?:Int.MAX_VALUE) }   // skip neighbours with shorter path
             .map { it.first }
+            .filter { node -> open.find { it.position == node.position } == null }
 
         open.addAll(next)
     }
