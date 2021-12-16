@@ -2,12 +2,11 @@ package aoc2021
 
 import com.google.gson.Gson
 
-sealed class Packet(
-    val version: Int,
-)
+sealed class Packet(open val version: Int)
 
-class LiteralPacket(version: Int, val payload: List<Int>) : Packet(version)
-class OperatorPacket(version: Int, val payload: List<Packet>) : Packet(version)
+data class LiteralPacket(override val version: Int, val payload: List<Int>) : Packet(version)
+data class Operator0Packet(override val version: Int, val payload: List<Packet>) : Packet(version)
+data class Operator1Packet(override val version: Int, val payload: List<Packet>) : Packet(version)
 
 
 val hexToDecMap = mapOf(
@@ -37,43 +36,42 @@ fun String.hexToBin(): String =
 
 
 fun String.parsePacket(): Pair<Packet, String>? {
-    var binary = this.splitToSequence("").filter { it.isNotEmpty() }
-    val version = binary.take(3).toInt()
-    binary = binary.drop(3)
-    val typeId = binary.take(3).toInt()
-    binary = binary.drop(3)
+    val version = this.slice(0 until 3).binToInt()
+    val typeId = this.slice(3 until 6).binToInt()
+    val binary = this.slice(6 until this.length)
     when (typeId) {
-        0 -> return binary.parseOperatorPacketType0(version)
+        0 -> return binary.parseOperator0Packet(version)
         4 -> return binary.parseLiteralPacket(version)
         else -> return null
     }
 }
 
-private fun <T> Sequence<T>.parseOperatorPacketType0(version: Int): Pair<Packet, String>? {
+private fun String.parseOperator0Packet(version: Int): Pair<Packet, String>? {
     TODO("Not yet implemented")
 }
 
-private fun  Sequence<String>.parseLiteralPacket(
+private fun String.parseLiteralPacket(
     version: Int,
 ): Pair<LiteralPacket, String> {
-    var seq = this
+    var s = this
     var digits = mutableListOf<Int>()
     while (true) {
-        val contBit = seq.take(1)
-        seq = seq.drop(1)
-        val digit = seq.take(4).toInt()
-        seq = seq.drop(4)
+        val contBit = s.slice(0 until 1)
+        val digit = s.slice( 1 .. 4).binToInt()
+        s = s.substring(5)
         digits.add(digit)
-        if (contBit.first() == "0") {
+        if (contBit == "0") {
             break
         }
     }
     val packet = LiteralPacket(version, digits)
-    return Pair(packet, seq.joinToString(""))
+    return Pair(packet, s)
 }
 
-private fun Sequence<String>.toInt(): Int =
-    this.map { it.toInt() }
+private fun String.binToInt(): Int =
+    this.split("")
+        .filter { it.isNotEmpty() }
+        .map { it.toInt() }
         .reduce { acc, x -> 2 * acc + x }
 
 class Day16 {

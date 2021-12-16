@@ -38,17 +38,17 @@ class Day16Test {
     @Test
     fun testParseLiteralPacket() {
         val binary ="110100101111111000101000"
-        val expected = LiteralPacket(version = 6, typeId = 4, payload = listOf(7, 14, 5))
-        val actual = binary.parsePacket() as LiteralPacket
+        val expected = Pair(LiteralPacket(version = 6, payload = listOf(7, 14, 5)), "000")
+        val actual = binary.parsePacket()
         assertEquals(expected, actual)
     }
 
     @Test
     fun testParseOperatorPacket() {
         val binary ="00111000000000000110111101000101001010010001001000000000"
-        val expected = OperatorPacket(version = 1, typeId = 6, payload = listOf(
-            LiteralPacket(6, 4, listOf(10)),
-            LiteralPacket(2, 4, listOf(1, 4)),
+        val expected = OperatorPacket(version = 1,  payload = listOf(
+            LiteralPacket(6, listOf(10)),
+            LiteralPacket(2, listOf(1, 4)),
         ))
         val actual = binary.parsePacket() as OperatorPacket
         assertEquals(expected, actual)
