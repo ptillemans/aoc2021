@@ -1,6 +1,7 @@
 package aoc2021
 
-import com.google.gson.Gson 
+import com.google.gson.Gson
+import common.Point
 
 class Day17 {
     
@@ -20,6 +21,15 @@ class Day17 {
         return null
     }
     
+}
+
+fun String.parseTargetArea(): Pair<Point, Point> {
+    val parts = this
+        .removePrefix("target area: ")
+        .split(", ")
+        .flatMap { it.split("=")[1].split("..")}
+        .map { it.toInt() }
+    return Pair(Point(parts[0], parts[2]), Point(parts[1], parts[3]))
 }
 
 fun main() {
