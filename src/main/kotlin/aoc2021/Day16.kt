@@ -8,8 +8,6 @@ sealed class Packet(open val version: Int) {
 
 data class LiteralPacket(override val version: Int, val payload: Long) : Packet(version) {
     override fun eval(): Long = payload
-
-
 }
 
 open class OperatorPacket(override val version: Int, open val payload: List<Packet>) : Packet(version) {
