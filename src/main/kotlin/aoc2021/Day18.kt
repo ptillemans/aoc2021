@@ -1,7 +1,9 @@
 package aoc2021
 
 import com.google.gson.Gson
+import io.ktor.utils.io.charsets.*
 import jdk.jshell.Snippet
+import kotlin.time.measureTime
 
 sealed class SnailFishElement {}
 
@@ -47,8 +49,27 @@ fun String.toSnailFishNumber() : SnailFishNumber {
 operator fun SnailFishNumber.plus(b: SnailFishNumber) : SnailFishNumber =
     SnailFishNumber(this, b)
 
-fun SnailFishNumber.reduce() : SnailFishNumber =
-    this
+fun SnailFishNumber.reduce() : SnailFishNumber {
+    fun checkSplits(element: SnailFishElement, level:Int): SnailFishElement =
+        when(element) {
+            is RegularNumber -> element
+            is SnailFishNumber -> if (level < 4)
+                SnailFishNumber(
+                    checkSplits(element.left, level+1)!!,
+                    checkSplits(element.right, level+1)!!
+                )
+            else
+                if (element.left is SnailFishNumber || element.right is SnailFishNumber)
+                    element.explode()!!
+                else
+                    element
+        }
+
+    return SnailFishNumber(
+        checkSplits(this.left, 2),
+        checkSplits(this.right,2)
+    )
+}
 
 fun SnailFishNumber.explode(): SnailFishNumber? =
     when(this.left) {
@@ -64,7 +85,14 @@ fun SnailFishNumber.explode(): SnailFishNumber? =
             }
     }
 
-
+fun RegularNumber.split(): SnailFishElement =
+    if (this.x >= 10)
+        SnailFishNumber(
+            RegularNumber(this.x/2),
+            RegularNumber(this.x - this.x/2)
+        )
+    else
+        this
 
 class Day18 {
     

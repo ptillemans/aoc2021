@@ -48,9 +48,24 @@ class Day18Test {
     }
 
     @Test
-    fun testReduce() {
+    fun testReduce1() {
         val actual = "[[[[[9,8],1],2],3],4]".toSnailFishNumber().reduce()
-        val expected = "[[[0,9],2],3],4]"
+        val expected = "[[[[0,9],2],3],4]".toSnailFishNumber()
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun testReduce2() {
+        val actual = "[7,[6,[5,[4,[3,2]]]]]".toSnailFishNumber().reduce()
+        val expected = "[7,[6,[5,[7,0]]]]".toSnailFishNumber()
+        assertEquals(expected, actual)
+    }
+
+
+    @Test
+    fun testReduce3() {
+        val actual = "[[6,[5,[4,[3,2]]]],1]".toSnailFishNumber().reduce()
+        val expected = "[[6,[5,[7,0]]],3]".toSnailFishNumber()
         assertEquals(expected, actual)
     }
 
@@ -62,6 +77,12 @@ class Day18Test {
     }
 
     @Test
+    fun testSplit() {
+        val actual = RegularNumber(11).split()
+        val expected = SnailFishNumber(RegularNumber(5),RegularNumber(6))
+        assertEquals(expected, actual)
+    }
+
     fun testAddition() {
         val a = SnailFishNumber(1.toSnailFishElement(),2.toSnailFishElement())
         val b = SnailFishNumber(Pair(3,4).toSnailFishElement(),5.toSnailFishElement())
