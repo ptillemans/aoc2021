@@ -1,122 +1,142 @@
 package aoc2021
 
 import com.google.gson.Gson
-import io.ktor.utils.io.charsets.*
-import jdk.jshell.Snippet
-import kotlin.time.measureTime
+import java.awt.SystemColor.text
+import java.lang.System.lineSeparator
 
-sealed class SnailFishElement {}
+data class RegularNumber(var x: Long, val level: Int)
+data class SnailFishNumber(val numbers: List<RegularNumber>)
 
-data class SnailFishNumber(val left: SnailFishElement, val right: SnailFishElement) : SnailFishElement()
-data class RegularNumber(val x: Int) : SnailFishElement()
-
-fun Int.toSnailFishElement() = RegularNumber(this)
-fun Pair<Int, Int>.toSnailFishElement() =
-    SnailFishNumber(
-        this.first.toSnailFishElement(),
-        this.second.toSnailFishElement()
-    )
+fun String.toSnailFishNumber(): SnailFishNumber {
+    var pos = 0
+    var level = 0
+    val numbers = mutableListOf<RegularNumber>()
 
 
-fun String.toSnailFishNumber() : SnailFishNumber {
-    var pos: Int = 0
-    val text = this.replace(" *".toRegex(), "")
-
-    fun parseSnailFishNumber(): SnailFishNumber {
-        fun readNumber(): SnailFishElement =
-            if (text.get(pos) == '[') {
-                parseSnailFishNumber()
-            } else {
-                var number = 0
-                while (text.get(pos).isDigit()) {
-                    number = 10 * number + text.get(pos).toString().toInt()
+    while (pos < this.length) {
+        var c = this[pos]
+        when {
+            c == '[' -> {
+                level += 1
+            }
+            c == ']' -> {
+                level -= 1
+            }
+            c.isDigit() -> {
+                var number: Long = 0
+                while (this.get(pos).isDigit() && (pos < this.length)) {
+                    number = 10 * number + this.get(pos).toString().toInt()
                     pos += 1
                 }
-                number.toSnailFishElement()
+                numbers.add(RegularNumber(number, level))
+                pos -= 1
             }
-
-        pos += 1  // skip [
-        val left = readNumber()
-        pos += 1 //skip ,
-        val right = readNumber()
-        pos += 1 //skip ]
-        return SnailFishNumber(left, right)
-    }
-
-    return parseSnailFishNumber()
-}
-
-operator fun SnailFishNumber.plus(b: SnailFishNumber) : SnailFishNumber =
-    SnailFishNumber(this, b)
-
-fun SnailFishNumber.reduce() : SnailFishNumber {
-    fun checkSplits(element: SnailFishElement, level:Int): SnailFishElement =
-        when(element) {
-            is RegularNumber -> element
-            is SnailFishNumber -> if (level < 4)
-                SnailFishNumber(
-                    checkSplits(element.left, level+1)!!,
-                    checkSplits(element.right, level+1)!!
-                )
-            else
-                if (element.left is SnailFishNumber || element.right is SnailFishNumber)
-                    element.explode()!!
-                else
-                    element
         }
-
-    return SnailFishNumber(
-        checkSplits(this.left, 2),
-        checkSplits(this.right,2)
-    )
+        pos += 1
+    }
+    return SnailFishNumber(numbers)
 }
 
-fun SnailFishNumber.explode(): SnailFishNumber? =
-    when(this.left) {
-        is SnailFishNumber ->
-            when(this.right) {
-                is SnailFishNumber -> null
-                is RegularNumber -> Pair(0, this.right.x + (this.left.right as RegularNumber).x).toSnailFishElement()
-            }
-        is RegularNumber ->
-            when(this.right) {
-                is SnailFishNumber -> Pair(this.left.x + (this.right.left as RegularNumber).x, 0).toSnailFishElement()
-                is RegularNumber -> null
-            }
-    }
+operator fun SnailFishNumber.plus(b: SnailFishNumber): SnailFishNumber =
+    SnailFishNumber(this.numbers.map { r ->
+        RegularNumber(r.x, r.level + 1)
+    } + b.numbers.map { r ->
+        RegularNumber(r.x, r.level + 1)
+    }).reduce()
 
-fun RegularNumber.split(): SnailFishElement =
-    if (this.x >= 10)
-        SnailFishNumber(
-            RegularNumber(this.x/2),
-            RegularNumber(this.x - this.x/2)
-        )
-    else
-        this
+fun List<SnailFishNumber>.sum(): SnailFishNumber =
+    this.reduce { sum, x -> sum + x}
+
+fun SnailFishNumber.magnitude(): Long {
+    val numbers = this.numbers.toMutableList()
+    val maxLevel = numbers.map {it.level}.maxOrNull()?:0
+
+    (1..maxLevel).reversed().forEach { level ->
+        while (true) {
+            val pos = numbers.indexOfFirst { it.level == level }
+            if (pos < 0) {
+                break
+            }
+            val mag = numbers[pos].x * 3 + numbers[pos+1].x*2
+            numbers.removeAt(pos)
+            numbers[pos] = RegularNumber(mag, level-1)
+        }
+    }
+    return numbers.map { it.x }.sum()
+}
+
+fun List<SnailFishNumber>.homework(): Long =
+    this.sum().magnitude()
+
+fun SnailFishNumber.reduce(): SnailFishNumber =
+    generateSequence(this) { it.reduceOnce() }.last()
+
+fun SnailFishNumber.reduceOnce(): SnailFishNumber? {
+    var reducedNumber = this.numbers.toMutableList()
+    var pos: Int = reducedNumber.indexOfFirst { it.level > 4 }
+    if (pos >= 0) {
+        val left = reducedNumber.removeAt(pos).x
+        val right = reducedNumber.removeAt(pos).x
+        reducedNumber.add(pos, RegularNumber(0, 4))
+        if (pos > 0) {
+            reducedNumber[pos - 1].x += left
+        }
+        if (pos + 1 < reducedNumber.size) {
+            reducedNumber[pos + 1].x += right
+        }
+        return SnailFishNumber(reducedNumber)
+    }
+    pos = reducedNumber.indexOfFirst { it.x >= 10 }
+    if (pos >= 0) {
+        val r = reducedNumber[pos]
+        reducedNumber[pos] = RegularNumber(r.x / 2, r.level + 1)
+        reducedNumber.add(pos + 1, RegularNumber(r.x - r.x / 2, r.level + 1))
+        return SnailFishNumber(reducedNumber)
+    }
+    return null
+}
+
+fun List<SnailFishNumber>.highestMagnitudeSum(): Long =
+    (0 until this.size).flatMap { a ->
+        (0 until this.size).map { b ->
+            Pair(a, b)
+        }
+    }
+        .filter { it.first != it.second }
+        .map { this[it.first] + this[it.second] }
+        .maxOfOrNull { it.magnitude() } ?:-1
+
 
 class Day18 {
-    
+
     var input: String
-    
+
     init {
         val filename = "/aoc2021/day18/input.txt"
         input = Day18::class.java.getResource(filename).readText()
     }
-    
 
-    fun part1(): String? {
-        return null
-    }
-   
-    fun part2(): String? {
-        return null
-    }
-    
+
+    fun part1(): String =
+        input.split(lineSeparator())
+            .filter { it.isNotBlank() }
+            .map { it.toSnailFishNumber() }
+            .sum()
+            .magnitude()
+            .toString()
+
+    fun part2(): String =
+        input.split(lineSeparator())
+            .filter { it.isNotBlank() }
+            .map { it.toSnailFishNumber() }
+            .highestMagnitudeSum()
+            .toString()
+
 }
 
 fun main() {
     val challenge = Day18()
-    val solutions = mapOf (
+    val solutions = mapOf(
         "part1" to challenge.part1(),
         "part2" to challenge.part2(),
     )
