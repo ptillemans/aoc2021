@@ -38,10 +38,6 @@ fun playGame(p1: Int, p2: Int): Pair<Player, Player> {
     return Pair(players[0], players[1])
 }
 
-data class DiracNode(val player: Player, val amount: Int, val children: List<DiracNode>) {
-
-}
-
 data class DiracPlayer(val pos: Int, val score: Int=0) {
     fun hasWon() = score >= 21
 

@@ -75,25 +75,44 @@ fun SnailFishNumber.reduceOnce(): SnailFishNumber? {
     var reducedNumber = this.numbers.toMutableList()
     var pos: Int = reducedNumber.indexOfFirst { it.level > 4 }
     if (pos >= 0) {
-        val left = reducedNumber.removeAt(pos).x
-        val right = reducedNumber.removeAt(pos).x
-        reducedNumber.add(pos, RegularNumber(0, 4))
-        if (pos > 0) {
-            reducedNumber[pos - 1].x += left
-        }
-        if (pos + 1 < reducedNumber.size) {
-            reducedNumber[pos + 1].x += right
-        }
-        return SnailFishNumber(reducedNumber)
+        return explode(reducedNumber, pos)
     }
     pos = reducedNumber.indexOfFirst { it.x >= 10 }
     if (pos >= 0) {
-        val r = reducedNumber[pos]
-        reducedNumber[pos] = RegularNumber(r.x / 2, r.level + 1)
-        reducedNumber.add(pos + 1, RegularNumber(r.x - r.x / 2, r.level + 1))
-        return SnailFishNumber(reducedNumber)
+        return split(reducedNumber, pos)
     }
     return null
+}
+
+private fun split(
+    reducedNumber: MutableList<RegularNumber>,
+    pos: Int
+): SnailFishNumber {
+    val r = reducedNumber[pos]
+    reducedNumber[pos] = RegularNumber(r.x / 2, r.level + 1)
+    reducedNumber.add(pos + 1, RegularNumber(r.x - r.x / 2, r.level + 1))
+    return SnailFishNumber(reducedNumber)
+}
+
+private fun explode(
+    reducedNumber: MutableList<RegularNumber>,
+    pos: Int
+): SnailFishNumber {
+    val left = reducedNumber.removeAt(pos).x
+    val right = reducedNumber.removeAt(pos).x
+
+    // in this problem the reduced number is always on lvl 4
+    reducedNumber.add(pos, RegularNumber(0, 4))
+
+    // add to element left, if any
+    if (pos > 0) {
+        reducedNumber[pos - 1].x += left
+    }
+    // add to element right, if any
+    if (pos + 1 < reducedNumber.size) {
+        reducedNumber[pos + 1].x += right
+    }
+    return SnailFishNumber(reducedNumber)
 }
 
 fun List<SnailFishNumber>.highestMagnitudeSum(): Long =
