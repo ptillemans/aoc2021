@@ -6,49 +6,76 @@ import java.lang.IllegalStateException
 import java.lang.System.lineSeparator
 
 class Day24 {
-    
+
     var input: String
-    
+
     init {
         val filename = "/aoc2021/day24/input.txt"
         input = Day24::class.java.getResource(filename)!!.readText()
     }
-    
 
-    fun part1(): String =
-        findValidNumbers().map { it.toString() }.joinToString("")
 
-    fun part2(): String? {
-        return null
-    }
+    fun part1(): String = solveSerialNumber(false).toString()
 
-    fun findValidNumbers(): List<Int> {
-        val program = input.parseProgram()
-        val digitParts = program.splitOn { it.opcode == Opcode.Inp }.filter { it.isNotEmpty() }
 
-        val preamble = listOf(
-            Instruction(Opcode.Inp, registerMap["z"]!!, Implicit),
-            Instruction(Opcode.Inp, registerMap["w"]!!, Implicit)
-        )
-        var zRange: List<Long> = listOf(0L)
+    fun part2(): String = solveSerialNumber(true).toString()
 
-        val wDigits: MutableList<Map<Long, Pair<Long, Long>>> = mutableListOf()
-        for (prgPart in digitParts.reversed()) {
-            val prg = preamble + prgPart
-            val combos: Map<Long, Pair<Long, Long>> = (1L..9).flatMap { w ->
-                (-260L..260).map { z ->
-                    Pair(z, w)
-                }
-            }
-                .map { prg.execute(it.toList())?.registers?.get("z")!! to it }
-                .filter { it.first in zRange }
-                .toMap()
+    private val preamble = listOf(
+        Instruction(Opcode.Inp, registerMap["z"]!!, Implicit),
+        Instruction(Opcode.Inp, registerMap["w"]!!, Implicit)
+    )
 
-            wDigits.add(combos)
-            zRange = combos.map { it.key }
+    private val programSections = input
+        .parseProgram()
+        .splitOn { it.opcode == Opcode.Inp }
+        .filter { it.isNotEmpty() }
+        .map { preamble + it }
+
+
+    private fun executeSection(n: Int, w: Long, z: Long) : Long =
+        programSections[n].execute(listOf(z, w))?.registers?.get("z")!!
+
+    fun findValidNumbers(n: Int, zOut: Long): List<Long>? {
+
+        if (n<0) {
+            return listOf()
         }
 
-        return listOf()
+        for (w in (1L..9).reversed()) {
+            for (z in -5000L..5000) {
+                if (executeSection(n, w, z) == zOut) {
+                    val rest = findValidNumbers(n - 1, z)
+                    if (rest != null) {
+                        return listOf(w) + rest
+                    }
+                }
+            }
+        }
+        return  null
+    }
+
+    private fun solveSerialNumber(part2: Boolean): Any {
+        val blocks = input.split(lineSeparator()).filter{it.isNotBlank()}.chunked(18)
+        val result = MutableList(14) { -1 }
+        val buffer = ArrayDeque<Pair<Int, Int>>()
+        fun List<String>.lastOf(command: String) = last { it.startsWith(command) }.split(" ").last().toInt()
+        val best = if (part2) 1 else 9
+        blocks.forEachIndexed { index, instructions ->
+            if ("div z 26" in instructions) {
+                val offset = instructions.lastOf("add x")
+                val (lastIndex, lastOffset) = buffer.removeFirst()
+                val difference = offset + lastOffset
+                if (difference >= 0) {
+                    result[lastIndex] = if (part2) best else best - difference
+                    result[index] = if (part2) best + difference else best
+                } else {
+                    result[lastIndex] = if (part2) best - difference else best
+                    result[index] = if (part2) best else best + difference
+                }
+            } else buffer.addFirst(index to instructions.lastOf("add y"))
+        }
+
+        return result.joinToString("").toLong()
     }
 }
 
@@ -71,8 +98,8 @@ enum class Opcode {
     Eql,
 }
 
-sealed class MonadSource() {}
-data class MonadRegister(val name:String, val value:Long = 0) : MonadSource(){}
+sealed class MonadSource
+data class MonadRegister(val name:String, val value:Long = 0) : MonadSource()
 data class MonadLiteral(
     val n: Long,
     val value: Long = n
@@ -123,7 +150,7 @@ data class MonadState(val registers: Map<String, Long>, val inputs: List<Long>) 
 
 }
 
-val initialState = MonadState( registerMap.keys.map { it to 0L}.toMap(), listOf())
+val initialState = MonadState(registerMap.keys.associateWith { 0L }, listOf())
 
 fun List<Instruction>.execute(inputs: List<Long>) : MonadState? =
     this.fold(initialState.withInputs(inputs)) { state: MonadState?, instruction ->
