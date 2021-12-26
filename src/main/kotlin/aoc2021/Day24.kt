@@ -11,51 +11,44 @@ class Day24 {
     
     init {
         val filename = "/aoc2021/day24/input.txt"
-        input = Day24::class.java.getResource(filename).readText()
+        input = Day24::class.java.getResource(filename)!!.readText()
     }
     
 
-    fun part1(): String? {
-        return null
-    }
-   
+    fun part1(): String =
+        findValidNumbers().map { it.toString() }.joinToString("")
+
     fun part2(): String? {
         return null
     }
 
     fun findValidNumbers(): List<Int> {
-        val prg = input.parseProgram()
-        val digitParts = prg.splitOn { it.opcode == Opcode.Inp }.filter { it.isNotEmpty() }
+        val program = input.parseProgram()
+        val digitParts = program.splitOn { it.opcode == Opcode.Inp }.filter { it.isNotEmpty() }
 
-        var expectedZ = 0
         val preamble = listOf(
             Instruction(Opcode.Inp, registerMap["z"]!!, Implicit),
             Instruction(Opcode.Inp, registerMap["w"]!!, Implicit)
         )
         var zRange: List<Long> = listOf(0L)
 
-        var wDigits: List<Map<Long, Pair<Long, Long>>> = listOf()
+        val wDigits: MutableList<Map<Long, Pair<Long, Long>>> = mutableListOf()
         for (prgPart in digitParts.reversed()) {
             val prg = preamble + prgPart
-            val combos : Map<Long, Pair<Long, Long>> = (1L..9).flatMap { w ->
+            val combos: Map<Long, Pair<Long, Long>> = (1L..9).flatMap { w ->
                 (-260L..260).map { z ->
                     Pair(z, w)
-                }}
-                .map { prg.execute(it.toList())?.registers?.get("z")!! to it}
+                }
+            }
+                .map { prg.execute(it.toList())?.registers?.get("z")!! to it }
                 .filter { it.first in zRange }
                 .toMap()
 
-            wDigits += combos
-            zRange = combos.map {it.key}
-
-
-
+            wDigits.add(combos)
+            zRange = combos.map { it.key }
         }
 
-
         return listOf()
-
-
     }
 }
 
