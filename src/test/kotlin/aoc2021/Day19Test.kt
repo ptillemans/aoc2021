@@ -79,7 +79,7 @@ class Day19Test {
             """.trimIndent().split("\n")
             .map { it.toCoordinate() }
 
-        val expected = scanner1Beacons.zip(scanner2Beacons).toMap()
+        val expected = scanner1Beacons.zip(scanner2Beacons.map {setOf(it)}).toMap()
         val dist1 = scanners[0].toDistances()
         val dist2 = scanners[1].toDistances()
         val actual = dist1.intersection(dist2).overlappingBeaconsInDistList()

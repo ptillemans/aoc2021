@@ -1,74 +1,248 @@
 package aoc2021
 
 import com.google.gson.Gson
-import common.IntMatrix
-import common.neighbours
 import io.ktor.util.*
-import kotlinx.coroutines.newFixedThreadPoolContext
 import java.lang.System.lineSeparator
 import java.util.*
-import javax.sound.sampled.BooleanControl
 import kotlin.Comparable as Comparable
 
-enum class AmphipodKind {
-    Amber,
-    Bronze,
-    Copper,
-    Desert
-}
 
-data class Amphipod(
-    val name: String,
-    val kind: AmphipodKind,
-) {
-    fun moveCost() =
-        when (kind) {
-            AmphipodKind.Amber -> 1
-            AmphipodKind.Bronze -> 10
-            AmphipodKind.Copper -> 100
-            AmphipodKind.Desert -> 1000
+/* maze
+
+      0   1   2   3   4   5   6   7   8   9   10
+             11      12      13      14
+             15      16      17      18
+             19      20      21      22    (*) optional
+             23      24      25      26
+*/
+
+class Maze(val roomSize: Int = 2) {
+
+    private val hallWay: List<Byte> = (0..10).map { it.toByte() }
+    private val room = (hallWay.size until hallWay.size + 4 * roomSize).map { it.toByte() }
+
+    private val doors = listOf(2, 4, 6, 8).map { it.toByte() }
+
+    private val firstRoomPos = hallWay.size
+    private val lastRoomPos = hallWay.size + 4 * roomSize
+
+    private fun north(loc: Byte): Byte? =
+        if (loc in (firstRoomPos + 4)..lastRoomPos)
+            (loc - 4).toByte()
+        else if (loc >= firstRoomPos)
+            (2 + (loc - firstRoomPos) * 2).toByte()
+        else
+            null
+
+    private fun south(loc: Byte): Byte? =
+        if (loc in firstRoomPos until lastRoomPos - 4)
+            (loc + 4).toByte()
+        else if (loc in doors)
+            (firstRoomPos + (loc - 2) / 2).toByte()
+        else
+            null
+
+    private fun west(loc: Byte): Byte? =
+        if (loc in 1 until firstRoomPos) (loc - 1).toByte() else null
+
+    private fun east(loc: Byte): Byte? =
+        if (loc in 0 until firstRoomPos - 1) (loc + 1).toByte() else null
+
+    fun links(loc: Byte): List<Byte> =
+        listOfNotNull(north(loc), south(loc), west(loc), east(loc))
+
+    private fun isTargetRoom(amphipod: Int, loc: Byte): Boolean =
+        (loc >= firstRoomPos)
+                && amphipod / roomSize == (loc - firstRoomPos) % 4
+
+    private fun isNoOtherAmphipodInRoom(state: State, amphipod: Int, loc: Byte): Boolean {
+        val kind = amphipod / roomSize
+        if (loc < firstRoomPos) {
+            return true
         }
+        val roomNumber = (loc - firstRoomPos) % 4
+        val otherPods = (0 until roomSize). map { it*4 + firstRoomPos + roomNumber }
+            .map { state.locations.indexOf(it.toByte()) }
+            .filter { it > 0 }
 
-    override fun toString(): String = name
-}
-
-data class Maze(
-    val cells: List<Cell>,
-    val amphipods: List<Amphipod>,
-    val roomSize: Int = 2
-) {
-    override fun toString(): String = cells.toString()
-}
-
-data class Cell(
-    val name: String,
-    var north: Cell? = null,
-    var south: Cell? = null,
-    var east: Cell? = null,
-    var west: Cell? = null,
-    val home: AmphipodKind? = null
-) {
-    fun links(): List<Cell> = listOfNotNull(north, east, south, west)
-
-    fun isRoom(): Boolean = home != null
-    fun isHallway(): Boolean = home == null
-
-    override fun toString(): String = name
-
-    override fun hashCode(): Int = name.hashCode()
-
-}
-
-data class State(val locations: Map<Amphipod, Cell>, val cost: Int) : Comparable<State> {
-
-    fun isSolved() : Boolean {
-        return locations.all { (a, c) -> a.kind == c.home}
+        return otherPods.isEmpty() || otherPods.all { it/roomSize == kind }
     }
 
-    override fun compareTo(other: State): Int =
-       this.cost.compareTo(other.cost)
+    private fun validMove(state: State, amphipod: Int, loc: Byte, newLoc: Byte): Boolean {
+        if (newLoc in state.locations) {
+            return false   // newLoc is occupied
+        }
+
+        if (loc in hallWay
+            && newLoc in room
+        ) {
+            return isTargetRoom(amphipod, newLoc)                   // only enter target room
+                    && isNoOtherAmphipodInRoom(state, amphipod, newLoc) // cannot enter if others are there
+        }
+
+        return true
+    }
+
+    fun isBottomPosition(state: State, amphipod: Int, loc: Byte): Boolean {
+        val roomStart = amphipod / roomSize + firstRoomPos
+        val locLower = (0 until roomSize)
+            .map { roomStart + 4 * it }
+            .filter { it > loc }
+
+        if (locLower.isEmpty()) {
+            return true
+        }
+
+        val result = locLower.all {
+            val room = state.locations
+                .slice((amphipod/roomSize) * roomSize until (amphipod / roomSize + 1) * roomSize)
+            room.contains(it.toByte())
+        }
+
+        return result
+    }
+
+    private fun canStop(state: State, amphipod: Int, loc: Byte, newLoc: Byte): Boolean {
+        if (newLoc in doors) {
+            return false   // never stop at door
+        }
+
+        if (loc in hallWay && newLoc in hallWay) {
+            return false   // cannot go from hallway to hallway
+        }
+
+        if (loc in room && newLoc in room) {
+            return false   // cannot go from room to room
+        }
+
+        if (isTargetRoom(amphipod, newLoc) && !isBottomPosition(state, amphipod, newLoc)) {
+            return false  // has to go to bottom most position
+        }
+
+        return true
+    }
+
+    private fun moveCost(amphipod: Int): Int =
+        (0..amphipod / roomSize).fold(1) { cost, _ -> 10 * cost } / 10
+
+    public fun allMoves(state: State, amphipod: Int): List<State> {
+
+        val currentLocation = state.locations[amphipod]
+
+        // do not bother for amphipods which are already in place
+        if (isTargetRoom(amphipod, currentLocation)
+            && isNoOtherAmphipodInRoom(state, amphipod, currentLocation)) {
+            return listOf()
+        }
+
+        val seen = mutableSetOf<Byte>()
+        val open = mutableListOf(Pair(currentLocation, state.cost))
+        val stepCost = moveCost(amphipod)
+        val moves = mutableSetOf<Pair<Byte, Int>>()
+        while (open.isNotEmpty()) {
+            val (loc, cost) = open.removeFirst()
+            val newLocations =
+                links(loc)
+                    .filter { !seen.contains(it) }
+                    .filter { validMove(state, amphipod, loc, it) }
+            seen.addAll(newLocations)
+            newLocations.map { Pair(it, cost + stepCost) }
+                .forEach {
+                    open.add(it)
+                    moves.add(it)
+                }
+        }
+        return moves
+            .filter { canStop(state, amphipod, currentLocation, it.first) }
+            .map {
+                val newLocations = state.locations.toMutableList()
+                newLocations[amphipod] = it.first
+                State(newLocations, it.second)
+            }
+    }
+
+    fun nextMoves(state: State): List<State> =
+        state.locations.flatMapIndexed { amphipod, _ ->
+            allMoves(state, amphipod)
+        }
+
+    private fun isSolved(state: State): Boolean {
+        val atHome = state.locations
+            .mapIndexed { idx, loc ->
+                loc >= firstRoomPos && (loc - firstRoomPos) % 4 == idx / roomSize
+            }
+        return atHome.all { it }
+    }
+
+
+    fun solve(state: State): Int {
+
+        val open = PriorityQueue<State>()
+        val closed: MutableMap<List<Byte>, Int> = mutableMapOf()
+
+        open.add(state)
+
+        while (open.isNotEmpty()) {
+            val curState = open.remove()
+            if (isSolved(curState)) {
+                return curState.cost
+            }
+
+            if (closed[curState.locations] ?: Int.MAX_VALUE <= curState.cost) {
+                continue
+            }
+            closed[curState.locations] = curState.cost
+            val nextStates = nextMoves(curState)
+            open.addAll(nextStates)
+        }
+
+        return -1
+    }
 }
 
+
+data class State(val locations: List<Byte>, val cost: Int) : Comparable<State> {
+
+    fun nextMoves() {
+        locations.map { loc ->
+
+        }
+    }
+
+    override fun compareTo(other: State): Int {
+        return this.cost.compareTo(other.cost)
+    }
+
+
+}
+
+fun String.parseState(maze: Maze): State {
+
+    var raw = this.split(lineSeparator())
+        .drop(2)
+        .map { it.replace(" ", "") }
+        .map { it.replace("#", "") }
+        .filter { it.isNotEmpty() }
+
+    if (maze.roomSize > 2) {
+        raw = listOf(
+            raw[0],
+            "DCBA",
+            "DBAC",
+            raw[1],
+        )
+    }
+
+    val locations = raw.flatMapIndexed { lineNo, line ->
+        line.split("").filter { it.isNotBlank() }
+            .mapIndexed { roomNo, s -> 11 + roomNo + lineNo * 4 to s }
+    }
+        .sortedBy { it.second }
+        .map { it.first.toByte() }
+
+    return State(locations, 0)
+
+}
 
 class Day23 {
 
@@ -81,225 +255,20 @@ class Day23 {
 
 
     fun part1(): String {
-        val maze = generateMaze()
+        val maze = Maze(2)
         val state = input.parseState(maze)
-        return state.solve().toString()
+        return maze.solve(state).toString()
     }
 
 
     fun part2(): String? {
-        val maze = generateMaze()
+        val maze = Maze(4)
         val state = input.parseState(maze)
-        return state.solve().toString()
+        return maze.solve(state).toString()
     }
 
 }
 
-fun generateMaze(roomSize: Int = 2): Maze {
-    val hallway = (1..11)
-        .map() { i -> Cell("H$i") }
-
-    hallway
-        .zipWithNext()
-        .forEach { (a, b) ->
-            a.east = b
-        }
-    hallway
-        .reversed()
-        .zipWithNext()
-        .forEach { (a, b) ->
-            a.west = b
-        }
-
-    val rooms = AmphipodKind.values()
-        .flatMap { kind ->
-            (1..roomSize)
-                .map { i ->
-                    Cell(name = "${kind.name.lowercase()}$i", home = kind)
-                }
-        }
-
-    rooms
-        .zipWithNext()
-        .forEach { (u, d) ->
-            if (u.home == d.home) {
-                u.south = d
-            }
-        }
-
-    rooms
-        .reversed()
-        .zipWithNext()
-        .forEach { (d, u) ->
-            if (u.home == d.home) {
-                d.north = u
-            }
-        }
-
-    (0..3).forEach { i ->
-        hallway[2 + i * 2].south = rooms[i * roomSize]
-        rooms[i * roomSize].north = hallway[2 + i * 2]
-    }
-
-    val amphipods = AmphipodKind.values()
-        .flatMap { kind ->
-            (0 until roomSize).map { i ->
-                Amphipod("${kind.name}${i+1}", kind)
-            }
-        }
-
-    return Maze(hallway + rooms, amphipods)
-
-}
-
-fun String.parseState(maze: Maze, part2: Boolean = false): State {
-
-    var raw = this.split(lineSeparator())
-        .drop(2)
-        .map { it.replace(" ", "") }
-        .map { it.replace("#", "") }
-        .filter { it.isNotEmpty() }
-
-    if (part2) {
-        raw = listOf(
-            raw[0],
-            "DCBA",
-            "DBAC",
-            raw[1],
-        )
-    }
-
-    val remaining = maze.amphipods.toMutableList()
-    val locations = raw.flatMapIndexed { row, line ->
-        line.map { c ->
-            val amphipod = remaining.first { it.kind.name.startsWith(c.toString()) }
-            remaining.remove(amphipod)
-            amphipod
-            }
-            .mapIndexed { i, amphipod ->
-                amphipod to maze.cells[11 + row + maze.roomSize*i]
-            }
-    }
-        .toMap()
-
-    return State(locations,0)
-}
-
-
-fun State.inPlace(amphipod: Amphipod): Boolean {
-    val curLoc = this.locations[amphipod]!!
-    if (curLoc.home != amphipod.kind) {
-        return false
-    }
-    return generateSequence(amphipod) { a ->
-        val c = this.locations[a]?.south
-        this.locations.filter { (_, v) -> v == c }.map { it.key }.first()
-    }
-        .all { it.kind == amphipod.kind }
-}
-
-fun State.nextStatesForAmphipod(amphipod: Amphipod): List<State> {
-
-    val seen = mutableSetOf<Cell>()
-    val open = this.locations[amphipod]!!.links()
-        .map { loc -> Pair(loc, this.cost+amphipod.moveCost()) }
-        .toMutableList()
-    val states = mutableListOf<State>()
-    val curLoc = this.locations[amphipod]!!
-
-    if (this.inPlace(amphipod)) {
-        return listOf()
-    }
-
-    while (open.isNotEmpty()) {
-        val (newLoc, newCost) = open.removeFirst()
-        if (newLoc in seen || newCost > 60000) {
-            continue
-        }
-        seen.add(newLoc)
-
-        // new location is occupied
-        if (newLoc in this.locations.values) {
-            continue
-        }
-
-        // new location is the wrong kind of room
-        if (curLoc.isHallway() && newLoc.isRoom() && newLoc.home != amphipod.kind) {
-            continue
-        }
-
-
-        open.addAll(newLoc.links()
-            .filter {it !in seen}
-            .map { Pair(it, newCost + amphipod.moveCost())})
-
-        // connot move from room to room
-        if (newLoc.isRoom() && curLoc.isRoom()) {
-            continue
-        }
-
-        // cannot move from hallway to hallway
-        if (newLoc.isHallway() && curLoc.isHallway()) {
-            continue
-        }
-
-        // cannot move to room if it contains other kinds
-        if (newLoc.isRoom() && locations.any { (a, c) -> c.home == newLoc.home && a.kind != amphipod.kind }) {
-            continue
-        }
-
-        // cannot stop in hallway above room {
-        if (newLoc.isHallway() && newLoc.south != null) {
-            continue
-        }
-
-        // cannot stop in room if there is open space below
-        if (newLoc.isRoom() && newLoc.south != null && newLoc.south !in this.locations.values) {
-            continue
-        }
-
-        val newState = State(this.locations.toMutableMap() + (amphipod to newLoc), newCost)
-        states.add(newState)
-    }
-
-    return states
-}
-
-fun State.nextStates(): List<State> =
-    this.locations.keys
-        .flatMap { this.nextStatesForAmphipod(it)}
-
-fun State.solve ( ): Int {
-    val open = PriorityQueue<State>()
-    val closed: MutableMap<Map<Amphipod, Cell>, Int> = mutableMapOf()
-
-    open.addAll(this.nextStates())
-
-    var cnt = 0
-    var state: State = this
-    while (open.isNotEmpty()) {
-        // take next location from the unprocessed locations
-        state = open.remove()
-        if (state.isSolved()) {
-            break
-        }
-
-        if (closed[state.locations]?:Int.MAX_VALUE < state.cost) {
-            continue
-        }
-
-        closed[state.locations] = state.cost
-
-        if (cnt % 1000 == 0) {
-            println("${state.cost}: ${open.size} - ${closed.size}")
-        }
-        cnt += 1
-
-        open.addAll(state.nextStates())
-    }
-
-    return state.cost
-}
 
 fun main() {
     val challenge = Day23()

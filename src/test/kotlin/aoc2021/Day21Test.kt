@@ -31,9 +31,10 @@ class Day21Test {
     @Test
     fun testDeterministicDie() {
         val die = DeterministicDie()
-        assertTrue((0..1000)
+        val result = (1..1000)
             .map {Pair(it, die.throwDie())}
-            .all { it.first == it.second })
+
+        assertTrue(result.all { (it.first - 1) % 100 + 1 == it.second })
 
     }
 
