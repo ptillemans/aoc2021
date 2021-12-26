@@ -6,57 +6,90 @@ import java.lang.IllegalStateException
 import java.lang.System.lineSeparator
 
 class Day24 {
-    
+
     var input: String
-    
+
     init {
         val filename = "/aoc2021/day24/input.txt"
         input = Day24::class.java.getResource(filename).readText()
     }
-    
+
 
     fun part1(): String? {
         return null
     }
-   
+
     fun part2(): String? {
         return null
     }
 
-    fun findValidNumbers(): List<Int> {
+    data class SectionIO(val zOut:Long, val zIn: Long, val wIn: Long)
+
+    fun findValidNumbers(): List<Long>? {
         val prg = input.parseProgram()
         val digitParts = prg.splitOn { it.opcode == Opcode.Inp }.filter { it.isNotEmpty() }
 
-        var expectedZ = 0
         val preamble = listOf(
             Instruction(Opcode.Inp, registerMap["z"]!!, Implicit),
             Instruction(Opcode.Inp, registerMap["w"]!!, Implicit)
         )
-        var zRange: List<Long> = listOf(0L)
+        var zRange: Set<Long> = setOf(0L)
 
-        var wDigits: List<Map<Long, Pair<Long, Long>>> = listOf()
+        var wDigits: MutableList<List<SectionIO>> = mutableListOf()
         for (prgPart in digitParts.reversed()) {
             val prg = preamble + prgPart
-            val combos : Map<Long, Pair<Long, Long>> = (1L..9).flatMap { w ->
+            val combos: List<SectionIO> = (1L..9).flatMap { w ->
                 (-260L..260).map { z ->
                     Pair(z, w)
-                }}
-                .map { prg.execute(it.toList())?.registers?.get("z")!! to it}
+                }
+            }
+                .map { prg.execute(it.toList())?.registers?.get("z")!! to it }
                 .filter { it.first in zRange }
-                .toMap()
+                .map { SectionIO(it.first, it.second.first, it.second.second) }
+                .toList()
 
-            wDigits += combos
-            zRange = combos.map {it.key}
-
-
-
+            wDigits.add(combos)
+            zRange = combos.map { it.zIn }.toSet()
         }
 
 
-        return listOf()
 
 
+        return wDigits.findBestNumbers(0)
     }
+}
+
+fun List<List<Day24.SectionIO>>.findBestNumbers(zOut: Long) : List<Long>?{
+
+    if (this.isEmpty()) {
+        println("found a solution!!!!!")
+        return  listOf()
+    }
+
+    val sectionMap = this.first()
+        .filter { it.zOut == zOut }
+        .groupBy { it.wIn }
+    val rest = this.drop(1)
+    println( "${this.size}")
+
+    val sortedBy = sectionMap.entries.sortedBy { -it.key }
+    for ((digit, sections) in sortedBy) {
+        var bestNumbers = null;
+        while  {
+            bestNumbers = rest.findBestNumbers()
+        }
+    }
+    val result : List<Long>? = sortedBy
+        .flatMap { (digit, sections) ->
+            sections
+                .map { section -> rest.findBestNumbers(section.zIn) }
+                .filterNotNull()
+                .map { it + digit }
+        }.firstOrNull()
+
+    for ()
+
+        return result
 }
 
 fun main() {
